@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Event Feedback Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #f72585;
+            --success: #4cc9f0;
+            --info: #7209b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gradient-1: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-2: linear-gradient(135deg, #f72585, #b5179e);
+            --gradient-3: linear-gradient(135deg, #4cc9f0, #4895ef);
+            --gradient-4: linear-gradient(135deg, #7209b7, #560bad);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e6e6ff;
+            line-height: 1.6;
+            padding-bottom: 40px;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        .dashboard-header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2.5rem;
+            border-bottom: 5px solid var(--secondary);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+        }
+        
+        .card {
+            color: white;
+            border-radius: 16px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            margin-bottom: 2.5rem;
+            border: none;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            background: rgba(25, 25, 65, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 100, 255, 0.15);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.3);
+            background: rgba(30, 30, 80, 0.8);
+        }
+        
+        .card-header {
+            background: var(--gradient-1);
+            color: white;
+            font-weight: 600;
+            padding: 1.4rem 2rem;
+            border: none;
+            font-size: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .card-header:hover::after {
+            transform: translateX(100%);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 16px;
+            background: rgba(40, 40, 90, 0.6);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            margin-bottom: 30px;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(100, 100, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+        }
+        
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+        }
+        
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 20px 0;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .metric-1 { color: #4cc9f0; }
+        .metric-2 { color: #f72585; }
+        .metric-3 { color: #90e0ef; }
+        .metric-4 { color: #b5179e; }
+        
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin: 25px 0;
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(58, 12, 163, 0.15));
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 25px 0;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .insight-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            z-index: 0;
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, rgba(25, 25, 65, 0.7), rgba(40, 40, 90, 0.8));
+            border-left: 5px solid var(--success);
+        }
+        
+        .key-point {
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(40, 40, 90, 0.6), rgba(25, 25, 65, 0.7));
+            border-left: 4px solid var(--primary);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .key-point::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            z-index: 0;
+        }
+        
+        .key-point:hover {
+            transform: translateX(8px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 20px;
+            margin: 35px 0 40px 0;
+            font-weight: 800;
+            color: white;
+            font-size: 2rem;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 150px;
+            height: 6px;
+            background: var(--gradient-2);
+            border-radius: 4px;
+        }
+        
+        .treemap-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .treemap-box {
+            flex: 1;
+            min-width: 220px;
+            padding: 25px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            transition: all 0.4s ease;
+            z-index: 1;
+        }
+        
+        .treemap-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+        }
+        
+        .treemap-label {
+            position: relative;
+            z-index: 2;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+        
+        .treemap-value {
+            font-size: 2rem;
+            font-weight: 800;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #0f0c29, #302b63);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 5rem;
+            border-top: 4px solid var(--secondary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            z-index: 0;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .chart-title {
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+        
+        .percentage-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.15);
+            font-size: 1rem;
+            margin-top: 8px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .progress-container {
+            background: rgba(0,0,0,0.15);
+            border-radius: 12px;
+            height: 14px;
+            overflow: hidden;
+            margin: 18px 0;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .participant-quote {
+            font-style: italic;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(58, 12, 163, 0.15));
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .participant-name {
+            text-align: right;
+            font-weight: 700;
+            color: var(--success);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        
+        .rating-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-3);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 1;
+            margin-right: 12px;
+            font-weight: 700;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* New styles for redesigned section */
+        .trends-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .trend-card {
+            flex: 1;
+            min-width: 320px;
+            background: linear-gradient(135deg, rgba(40, 40, 90, 0.7), rgba(25, 25, 65, 0.8));
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .trend-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.08), transparent);
+            z-index: -1;
+        }
+        
+        .trend-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+        }
+        
+        .trend-header {
+            padding: 18px 25px;
+            background: var(--gradient-4);
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .trend-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.7s ease;
+        }
+        
+        .trend-header:hover::after {
+            transform: translateX(100%);
+        }
+        
+        .trend-content {
+            padding: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .trend-stat {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .trend-description {
+            text-align: center;
+            color: #d6d6ff;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .trend-visual {
+            height: 160px;
+            margin: 20px 0;
+        }
+        
+        .trend-highlight {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.15), rgba(72, 149, 239, 0.15));
+            border-left: 3px solid var(--success);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.05rem;
+        }
+        
+        .comparison-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.15);
+            font-size: 0.95rem;
+            margin-top: 10px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .trend-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin: 20px 0;
+            opacity: 0.9;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .glow {
+            animation: glowEffect 3s infinite alternate;
+        }
+        
+        @keyframes glowEffect {
+            0% {
+                box-shadow: 0 0 10px rgba(67, 97, 238, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 25px rgba(247, 37, 133, 0.8);
+            }
+        }
+        
+        .pulse {
+            animation: pulseEffect 2s infinite;
+        }
+        
+        @keyframes pulseEffect {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .floating {
+            animation: floatingEffect 6s ease-in-out infinite;
+        }
+        
+        @keyframes floatingEffect {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .glowing-text {
+            text-shadow: 0 0 15px rgba(247, 37, 133, 0.7);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container header-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-3 fw-bold glowing-text"><i class="fas fa-chart-line me-3 floating"></i>Enhanced Event Feedback Dashboard</h1>
+                    <p class="lead fs-4">Comprehensive analysis of post-event survey results</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="bg-white text-dark d-inline-block p-3 rounded shadow-sm pulse">
+                        <div class="fs-4 fw-bold">Survey Responses</div>
+                        <div class="fs-5">2,000 Participants</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Key Metrics -->
+        <div class="row mb-5">
+            <div class="col-md-3">
+                <div class="stat-card glow">
+                    <div class="stat-icon metric-1">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value metric-1">90.4%</div>
+                    <div class="text-light">Met Expectations</div>
+                    <div class="mt-3"><span class="badge bg-primary bg-opacity-25 text-white">+3.2% from last event</span></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card glow">
+                    <div class="stat-icon metric-2">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-value metric-2">4.25</div>
+                    <div class="text-light">Avg. Rating</div>
+                    <div class="mt-3"><span class="badge bg-success bg-opacity-25 text-white">8.7/10</span></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card glow">
+                    <div class="stat-icon metric-3">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <div class="stat-value metric-3">72.8%</div>
+                    <div class="text-light">Positive Feedback</div>
+                    <div class="mt-3"><span class="badge bg-warning bg-opacity-25 text-white">22.3% neutral</span></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card glow">
+                    <div class="stat-icon metric-4">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="stat-value metric-4">London</div>
+                    <div class="text-light">Top Location</div>
+                    <div class="mt-3"><span class="badge bg-info bg-opacity-25 text-white">32% of attendees</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row">
+            <!-- Rating Distribution -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-2"></i> Overall Rating Distribution
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="ratingDistribution"></canvas>
+                        </div>
+                        <div class="insight-box">
+                            <strong><i class="fas fa-lightbulb me-2"></i>Insight:</strong> Ratings show a positive skew with mean at 4.25. 68% of ratings are between 3.8 and 4.7, indicating generally positive sentiment.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sentiment Analysis -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-comments me-2"></i> Feedback Sentiment Analysis
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="sentimentChart"></canvas>
+                        </div>
+                        <div class="insight-box">
+                            <strong><i class="fas fa-lightbulb me-2"></i>Insight:</strong> 72.8% of comments are positive, 22.3% neutral, and only 4.9% negative. Negative comments primarily relate to technical issues.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Location Attendance -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-map-marked-alt me-2"></i> Location Attendance
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="locationChart"></canvas>
+                        </div>
+                        <div class="insight-box">
+                            <strong><i class="fas fa-lightbulb me-2"></i>Insight:</strong> London had the highest attendance with 32% of participants. California and New York also had strong showings with 18% and 15% respectively.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Satisfaction by Topic -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-check-circle me-2"></i> Topic Satisfaction
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="topicSatisfaction"></canvas>
+                        </div>
+                        <div class="insight-box">
+                            <strong><i class="fas fa-lightbulb me-2"></i>Insight:</strong> Technical content received the highest satisfaction scores (4.7/5), while venue facilities had the most room for improvement (3.8/5).
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations Section -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h3 class="section-title"><i class="fas fa-lightbulb me-2"></i> Key Recommendations</h3>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card recommendation-card">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Areas for Improvement
+                    </div>
+                    <div class="card-body">
+                        <div class="treemap-container">
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #d00000, #9d0208);">
+                                <div class="treemap-label">Technical Setup</div>
+                                <div class="treemap-value">42%</div>
+                                <div class="percentage-badge">840 participants</div>
+                            </div>
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #f48c06, #dc2f02);">
+                                <div class="treemap-label">Venue Facilities</div>
+                                <div class="treemap-value">28%</div>
+                                <div class="percentage-badge">560 participants</div>
+                            </div>
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #00b4d8, #0077b6);">
+                                <div class="treemap-label">Session Timing</div>
+                                <div class="treemap-value">15%</div>
+                                <div class="percentage-badge">300 participants</div>
+                            </div>
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #38b000, #008000);">
+                                <div class="treemap-label">Food & Beverages</div>
+                                <div class="treemap-value">10%</div>
+                                <div class="percentage-badge">200 participants</div>
+                            </div>
+                        </div>
+                        
+                        <ol class="mt-4" style="padding-left: 20px;">
+                            <li class="mb-3">
+                                <strong>Enhance technical infrastructure</strong> - Upgrade AV equipment and provide dedicated tech support
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #d00000, #9d0208); width: 42%"></div>
+                                </div>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Improve venue facilities</strong> - Ensure adequate seating, temperature control, and signage
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #f48c06, #dc2f02); width: 28%"></div>
+                                </div>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Optimize session scheduling</strong> - Avoid back-to-back sessions and provide adequate breaks
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #00b4d8, #0077b6); width: 15%"></div>
+                                </div>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Diversify catering options</strong> - Include dietary-specific meals and refreshment stations
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #38b000, #008000); width: 10%"></div>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-check-circle me-2"></i> Strengths to Maintain
+                    </div>
+                    <div class="card-body">
+                        <div class="treemap-container">
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #38b000, #008000);">
+                                <div class="treemap-label">Content Quality</div>
+                                <div class="treemap-value">38%</div>
+                                <div class="percentage-badge">760 participants</div>
+                            </div>
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #00b4d8, #0077b6);">
+                                <div class="treemap-label">Speaker Expertise</div>
+                                <div class="treemap-value">32%</div>
+                                <div class="percentage-badge">640 participants</div>
+                            </div>
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">
+                                <div class="treemap-label">Networking</div>
+                                <div class="treemap-value">20%</div>
+                                <div class="percentage-badge">400 participants</div>
+                            </div>
+                            <div class="treemap-box" style="background: linear-gradient(135deg, #f72585, #b5179e);">
+                                <div class="treemap-label">Organization</div>
+                                <div class="treemap-value">10%</div>
+                                <div class="percentage-badge">200 participants</div>
+                            </div>
+                        </div>
+                        
+                        <ol class="mt-4" style="padding-left: 20px;">
+                            <li class="mb-3">
+                                <strong>Maintain high-quality content</strong> - Continue inviting industry experts and thought leaders
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #38b000, #008000); width: 38%"></div>
+                                </div>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Leverage speaker expertise</strong> - Promote speaker sessions through multiple channels
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #00b4d8, #0077b6); width: 32%"></div>
+                                </div>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Enhance networking opportunities</strong> - Include structured networking sessions
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #4361ee, #3a0ca3); width: 20%"></div>
+                                </div>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Streamline registration process</strong> - Maintain efficient check-in procedures
+                                <div class="progress-container mt-2">
+                                    <div class="progress-bar" style="background: linear-gradient(90deg, #f72585, #b5179e); width: 10%"></div>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Marketing Channels -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-bullhorn me-2"></i> Marketing Channel Effectiveness
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="marketingChart"></canvas>
+                        </div>
+                        <div class="insight-box">
+                            <strong><i class="fas fa-lightbulb me-2"></i>Insight:</strong> Social media was the most effective marketing channel (42%), while paid ads had the highest conversion rate for registrations.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Findings -->
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <h3 class="section-title"><i class="fas fa-search me-2"></i> Detailed Findings</h3>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="key-point">
+                    <h5><i class="fas fa-check-circle text-success me-2"></i> What Participants Liked Most</h5>
+                    <ul class="mt-3">
+                        <li class="mb-3">
+                            <span class="rating-number">1</span>
+                            Quality of keynote presentations <span class="highlight">(30% - 600 participants)</span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="rating-number">2</span>
+                            Networking opportunities <span class="highlight">(25% - 500 participants)</span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="rating-number">3</span>
+                            Practical workshops <span class="highlight">(20% - 400 participants)</span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="rating-number">4</span>
+                            Industry expert panels <span class="highlight">(15% - 300 participants)</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="participant-quote mt-3">
+                        "The keynote presentations were truly inspiring and provided valuable insights that I can immediately apply in my work."
+                        <div class="participant-name">- Sarah Johnson, Marketing Director</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="key-point">
+                    <h5><i class="fas fa-exclamation-circle text-warning me-2"></i> Areas for Improvement</h5>
+                    <ul class="mt-3">
+                        <li class="mb-3">
+                            <span class="rating-number">1</span>
+                            Technical setup and AV quality <span class="highlight">(50% - 1,000 participants)</span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="rating-number">2</span>
+                            Session timing and scheduling <span class="highlight">(18% - 360 participants)</span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="rating-number">3</span>
+                            Venue facilities <span class="highlight">(15% - 300 participants)</span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="rating-number">4</span>
+                            Food and beverage options <span class="highlight">(10% - 200 participants)</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="participant-quote mt-3">
+                        "The content was excellent, but technical issues during presentations were frustrating and disrupted the flow."
+                        <div class="participant-name">- Michael Chen, Software Engineer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Redesigned Key Trends & Insights Section -->
+            <div class="col-md-12">
+                <div class="key-point">
+                    <h5><i class="fas fa-chart-line text-primary me-2"></i> Key Trends & Insights</h5>
+                    
+                    <div class="trends-container">
+                        <!-- Trend Card 1 -->
+                        <div class="trend-card">
+                            <div class="trend-header">
+                                <i class="fas fa-check-circle me-2"></i> Event Expectations
+                            </div>
+                            <div class="trend-content">
+                                <div class="trend-icon metric-1">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="trend-stat metric-1">90.4%</div>
+                                <div class="trend-description">
+                                    of attendees said the event met or exceeded expectations
+                                </div>
+                                <div class="trend-visual">
+                                    <canvas id="expectationChart"></canvas>
+                                </div>
+                                <div class="trend-highlight">
+                                    <i class="fas fa-arrow-up text-success me-2"></i> 
+                                    <strong>Positive trend:</strong> +3.2% improvement from last year
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Trend Card 2 -->
+                        <div class="trend-card">
+                            <div class="trend-header">
+                                <i class="fas fa-handshake me-2"></i> Networking Satisfaction
+                            </div>
+                            <div class="trend-content">
+                                <div class="trend-icon metric-2">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                                <div class="trend-stat metric-2">4.7/5</div>
+                                <div class="trend-description">
+                                    average satisfaction with networking sessions
+                                </div>
+                                <div class="trend-visual">
+                                    <canvas id="networkingChart"></canvas>
+                                </div>
+                                <div class="trend-highlight">
+                                    <i class="fas fa-star text-warning me-2"></i> 
+                                    <strong>Top rated aspect</strong> of the event according to participants
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Trend Card 3 -->
+                        <div class="trend-card">
+                            <div class="trend-header">
+                                <i class="fas fa-share-alt me-2"></i> Recommendation Rate
+                            </div>
+                            <div class="trend-content">
+                                <div class="trend-icon metric-3">
+                                    <i class="fas fa-bullhorn"></i>
+                                </div>
+                                <div class="trend-stat metric-3">86%</div>
+                                <div class="trend-description">
+                                    said they would recommend the event to colleagues
+                                </div>
+                                <div class="trend-visual">
+                                    <canvas id="recommendationChart"></canvas>
+                                </div>
+                                <div class="trend-highlight">
+                                    <i class="fas fa-chart-line text-info me-2"></i> 
+                                    <strong>Net Promoter Score:</strong> 68 (Excellent)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-chart-pie me-2"></i>Enhanced Event Feedback Dashboard</h4>
+                    <p>Generated from Post-Event Survey Analysis</p>
+                    <p><i class="fas fa-calendar me-2"></i>July 27, 2025</p>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <p>Prepared by Event Analytics Team</p>
+                    <p>Confidential - For Internal Use Only</p>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-light me-2"><i class="fas fa-download me-2"></i>Download Report</button>
+                        <button class="btn btn-light"><i class="fas fa-share-alt me-2"></i>Share</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <hr style="border-color: rgba(255,255,255,0.2);">
+                    <p>© 2025 Event Insights Dashboard. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Rating Distribution Chart
+        const ratingCtx = document.getElementById('ratingDistribution').getContext('2d');
+        new Chart(ratingCtx, {
+            type: 'bar',
+            data: {
+                labels: ['1 (Poor)', '2', '3 (Average)', '4', '5 (Excellent)'],
+                datasets: [{
+                    label: 'Number of Responses',
+                    data: [45, 78, 210, 540, 1127],
+                    backgroundColor: '#4361ee',
+                    borderColor: '#3a0ca3',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Responses: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Responses',
+                            color: '#e6e6ff'
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: '#e6e6ff'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Rating Scale',
+                            color: '#e6e6ff'
+                        },
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#e6e6ff'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Sentiment Analysis Chart
+        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+        new Chart(sentimentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Positive', 'Neutral', 'Negative'],
+                datasets: [{
+                    data: [72.8, 22.3, 4.9],
+                    backgroundColor: ['#4cc9f0', '#f72585', '#7209b7'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#e6e6ff'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.parsed}%`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+        
+        // Location Attendance Chart with Numbers
+        const locationCtx = document.getElementById('locationChart').getContext('2d');
+        new Chart(locationCtx, {
+            type: 'pie',
+            data: {
+                labels: ['London', 'California', 'New York', 'Texas', 'Brooklyn', 'New Jersey'],
+                datasets: [{
+                    data: [640, 360, 300, 240, 220, 240],
+                    backgroundColor: ['#4361ee', '#f72585', '#4cc9f0', '#7209b7', '#3a0ca3', '#b5179e'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#e6e6ff'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw;
+                                const total = context.chart.getDatasetMeta(0).total;
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} attendees (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Topic Satisfaction Chart
+        const topicCtx = document.getElementById('topicSatisfaction').getContext('2d');
+        new Chart(topicCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Technical Content', 'Speaker Quality', 'Networking', 'Venue', 'Organization', 'Materials'],
+                datasets: [{
+                    label: 'Satisfaction Score',
+                    data: [4.7, 4.6, 4.5, 3.8, 4.2, 4.4],
+                    backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                    borderColor: '#4361ee',
+                    pointBackgroundColor: '#4361ee',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#4361ee',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1,
+                            backdropColor: 'transparent',
+                            color: '#e6e6ff'
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        angleLines: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        pointLabels: {
+                            color: '#e6e6ff',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Marketing Channel Chart
+        const marketingCtx = document.getElementById('marketingChart').getContext('2d');
+        new Chart(marketingCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Social Media', 'Email', 'Referral', 'Google Ads', 'Other'],
+                datasets: [{
+                    label: 'Percentage',
+                    data: [42, 28, 15, 10, 5],
+                    backgroundColor: '#f72585',
+                    borderColor: '#b5179e',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '% of attendees';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Percentage of Attendees',
+                            color: '#e6e6ff'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            },
+                            color: '#e6e6ff'
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#e6e6ff'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // New charts for Key Trends & Insights section
+        // Expectation Chart
+        const expectationCtx = document.getElementById('expectationChart').getContext('2d');
+        new Chart(expectationCtx, {
+            type: 'line',
+            data: {
+                labels: ['2021', '2022', '2023', '2024', '2025'],
+                datasets: [{
+                    label: 'Met Expectations',
+                    data: [82, 85, 87, 89, 90.4],
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    borderColor: '#4361ee',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#4361ee',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 75,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            },
+                            color: '#e6e6ff'
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#e6e6ff'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Networking Chart
+        const networkingCtx = document.getElementById('networkingChart').getContext('2d');
+        new Chart(networkingCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Keynotes', 'Workshops', 'Panels', 'Networking'],
+                datasets: [{
+                    label: 'Satisfaction',
+                    data: [4.3, 4.5, 4.4, 4.7],
+                    backgroundColor: '#f72585',
+                    borderColor: '#b5179e',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 3.5,
+                        max: 5,
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: '#e6e6ff'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#e6e6ff'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Recommendation Chart
+        const recommendationCtx = document.getElementById('recommendationChart').getContext('2d');
+        new Chart(recommendationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Yes', 'No', 'Maybe'],
+                datasets: [{
+                    data: [86, 8, 6],
+                    backgroundColor: ['#4cc9f0', '#f72585', '#7209b7'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            color: '#e6e6ff'
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
